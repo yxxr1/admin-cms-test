@@ -10,7 +10,7 @@ import {setIsSaveSession, setTokens} from "@/helpers/token";
 import type {FormData, FormErrors} from "./types";
 import {useAuthFormStore} from "./store/form";
 import {login} from "./api/login";
-import {getMe} from "./api/getMe";
+import {useCurrentUser} from "./hooks/useCurrentUser.ts";
 import logoUrl from "./assets/logo.svg";
 import userIconUrl from "./assets/user.svg";
 import lockIconUrl from "./assets/lock.svg";
@@ -18,12 +18,13 @@ import lockIconUrl from "./assets/lock.svg";
 export const Auth = () => {
     const {username, password, isSave, setUsername, setPassword, toggleIsSave, isSubmitting, setIsSubmitting} = useAuthFormStore();
     const navigate = useNavigate();
+    const { user, refetchUser } = useCurrentUser();
 
     useEffect(() => {
-        getMe().then(() => {
+        if (user) {
             navigate('/products');
-        }).catch(() => {})
-    }, [])
+        }
+    }, [user])
 
     const [touchedFields, setTouchedFields] = useState<Partial<Record<keyof FormData, boolean>>>({});
     const setFieldTouched = useCallback((name: keyof FormData) => {
@@ -59,6 +60,7 @@ export const Auth = () => {
                 const loginData = await login(username, password);
                 setIsSaveSession(isSave);
                 setTokens(loginData);
+                await refetchUser();
                 navigate('/products');
             } catch (e: unknown) {
                 setNotificationMessage((e as Error).message);

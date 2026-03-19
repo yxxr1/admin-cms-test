@@ -1,4 +1,5 @@
 import {useCallback, useEffect, useState} from "react";
+import {useNavigate} from "react-router";
 import {DataGrid} from "@mui/x-data-grid";
 import type {GridColDef} from "@mui/x-data-grid";
 import {IconButton, Snackbar} from "@mui/material";
@@ -9,6 +10,7 @@ import type {Product} from "./types";
 import {getProducts} from "./api/products";
 import {CreateProduct} from "./dialogs/createProduct";
 import refreshIconUrl from "./assets/refresh.svg";
+import {useCurrentUser} from "@/modules/Auth";
 
 const columns: GridColDef<Product>[] = [
     {
@@ -51,6 +53,14 @@ const columns: GridColDef<Product>[] = [
 
 export const Products = () => {
     const { products, setProducts, pagination, changePagination, productsCount, setProductsCount, sort, changeSort, search, setSearch, isLoading, toggleIsLoading } = useProductsTableStore();
+    const {user} = useCurrentUser();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (user === null) {
+            navigate('/');
+        }
+    }, [user]);
 
     const [notificationMessage, setNotificationMessage] = useState<string | null>(null);
 
